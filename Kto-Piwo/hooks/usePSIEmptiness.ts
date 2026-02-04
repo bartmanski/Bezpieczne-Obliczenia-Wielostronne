@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { getSocket } from '../services/socketService'; //Bartek połącz ze swoim socketem
+import { getSocket } from '../services/socketService.mock'; //Bartek połącz ze swoim socketem
 import { randomKey, sha256 } from '../utils/cryptoUtils';
 
 type PsiStep2Payload = {
