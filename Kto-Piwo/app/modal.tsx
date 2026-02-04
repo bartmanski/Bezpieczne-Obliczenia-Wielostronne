@@ -1,7 +1,6 @@
 import { Link } from "expo-router";
 import { StyleSheet } from "react-native";
 
-import { PsiTest } from "@/components/PSITest";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 
@@ -12,7 +11,6 @@ export default function ModalScreen() {
       <Link href="/" dismissTo style={styles.link}>
         <ThemedText type="link">Go to home screen</ThemedText>
       </Link>
-      <PsiTest></PsiTest>
     </ThemedView>
   );
 }
