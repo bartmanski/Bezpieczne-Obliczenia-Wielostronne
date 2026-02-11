@@ -1,24 +1,65 @@
 import { Image } from "expo-image";
-import { Platform, StyleSheet, Pressable } from "react-native";
-import { Text, View } from "react-native";
-import { useLocation } from "../../hooks/location";
+import { StyleSheet, Pressable, TextInput, Text, View } from "react-native";
+import { useState, useEffect } from "react";
 
-import { HelloWave } from "@/components/hello-wave";
+import HelloWave from "@/components/hello-wave";
 import ParallaxScrollView from "@/components/parallax-scroll-view";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { Link } from "expo-router";
 
 export default function HomeScreen() {
-  const { location, points, loading, error } = useLocation();
+  const [username, setUsername] = useState("");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [users, setUsers] = useState<string[]>([]);
 
-  const status = loading
-    ? { label: "Szukam lokalizacji…", tone: "muted" as const }
-    : error
-      ? { label: "Brak lokalizacji", tone: "danger" as const }
-      : location
-        ? { label: "Lokalizacja OK", tone: "success" as const }
-        : { label: "Nieustalone", tone: "muted" as const };
+  async function sendLocationToDo() {
+    try {
+      console.log("Wysyłam lokalizację dla:", username);
+    } catch (e) {
+      console.log("Błąd sendLocationToDo:", e);
+    }
+  }
+  async function fetchUsersToDo() {
+    try {
+      console.log("Pobieram użytkowników...");
+
+      const fakeData = ["Kuba", "Ania", "Bartek", username];
+
+      setUsers(fakeData);
+    } catch (e) {
+      console.log("Błąd fetchUsersToDo:", e);
+    }
+  }
+
+  async function handleLogin() {
+    if (!username.trim()) return;
+
+    setIsLoggedIn(true);
+
+    await sendLocationToDo();
+    await fetchUsersToDo();
+  }
+
+
+  useEffect(() => {
+    if (!isLoggedIn) return;
+
+    const interval = setInterval(() => {
+      sendLocationToDo();
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [isLoggedIn]);
+
+  useEffect(() => {
+    if (!isLoggedIn) return;
+
+    const interval = setInterval(() => {
+      fetchUsersToDo();
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [isLoggedIn]);
 
   return (
     <ParallaxScrollView
@@ -33,7 +74,6 @@ export default function HomeScreen() {
         </View>
       }
     >
-      
       <ThemedView style={styles.hero}>
         <View style={styles.heroTopRow}>
           <View style={styles.brand}>
@@ -41,135 +81,48 @@ export default function HomeScreen() {
               Kto Na Piwo?
             </ThemedText>
             <ThemedText style={styles.brandSubtitle}>
-              TEST TEST
+              {isLoggedIn ? "Czekamy na ekipę 🍺" : "Zaloguj się"}
             </ThemedText>
           </View>
-
-          <View style={styles.waveWrap}>
-            <HelloWave />
-          </View>
+          <HelloWave />
         </View>
 
-        <View style={[styles.chip, chipTone(status.tone)]}>
-          <Text style={styles.chipText}>{status.label}</Text>
-        </View>
-
-        <View style={styles.ctaRow}>
-          <Pressable
-            style={({ pressed }) => [
-              styles.primaryBtn,
-              pressed && styles.pressed,
-              (loading || !!error) && styles.disabled,
-            ]}
-            disabled={loading || !!error}
-            onPress={() => alert("Stwórz wypad: TODO")}
-          >
-            <Text style={styles.primaryBtnText}>Stwórz wypad</Text>
-            <Text style={styles.primaryBtnSub}>Zaproś ekipę i ustaw miejsce</Text>
-          </Pressable>
-
-          <View style={styles.secondaryRow}>
-            <Pressable
-              style={({ pressed }) => [styles.secondaryBtn, pressed && styles.pressed]}
-              onPress={() => alert("Dołącz: TODO")}
-            >
-              <Text style={styles.secondaryBtnText}>Dołącz</Text>
-            </Pressable>
+        {!isLoggedIn ? (
+          // ===== LOGOWANIE =====
+          <View style={styles.loginBox}>
+            <TextInput
+              placeholder="Nazwa użytkownika"
+              placeholderTextColor="rgba(148,163,184,0.6)"
+              value={username}
+              onChangeText={setUsername}
+              style={styles.input}
+            />
 
             <Pressable
-              style={({ pressed }) => [styles.secondaryBtn, pressed && styles.pressed]}
-              onPress={() => alert("Udostępnij: TODO")}
+              onPress={handleLogin}
+              disabled={!username.trim()}
+              style={({ pressed }) => [
+                styles.primaryBtn,
+                pressed && styles.pressed,
+                !username.trim() && styles.disabled,
+              ]}
             >
-              <Text style={styles.secondaryBtnText}>Udostępnij</Text>
+              <Text style={styles.primaryBtnText}>Zaloguj</Text>
             </Pressable>
           </View>
-        </View>
-      </ThemedView>
-
-      {/* LOKALIZACJA */}
-      <ThemedView style={styles.card}>
-        <View style={styles.cardHeader}>
-          <ThemedText type="subtitle" style={styles.cardTitle}>
-            Twoja pozycja
-          </ThemedText>
-          <Text style={styles.cardHint}>
-            {Platform.OS === "web" ? "Web bywa kapryśny z GPS" : "Z telefonu działa najlepiej"}
-          </Text>
-        </View>
-
-        {loading && <ThemedText style={styles.muted}>Pobieram…</ThemedText>}
-
-        {error && <ThemedText style={styles.danger}>{error}</ThemedText>}
-
-        {!loading && !error && location && (
-          <View style={styles.kvGrid}>
-            <View style={styles.kv}>
-              <Text style={styles.k}>Szerokość</Text>
-              <Text style={styles.v}>{location.latitude.toFixed(6)}</Text>
-            </View>
-            <View style={styles.kv}>
-              <Text style={styles.k}>Długość</Text>
-              <Text style={styles.v}>{location.longitude.toFixed(6)}</Text>
-            </View>
-          </View>
-        )}
-
-        {!loading && !error && !location && (
-          <ThemedText style={styles.muted}>
-            Brak danych. Jeśli to Android, sprawdź uprawnienia lokalizacji.
-          </ThemedText>
-        )}
-      </ThemedView>
-
-      {/* PUNKTY */}
-      {!!points?.length && (
-        <ThemedView style={styles.card}>
-          <View style={styles.cardHeader}>
-            <ThemedText type="subtitle" style={styles.cardTitle}>
-              Punkty pomocnicze
-            </ThemedText>
-            <Text style={styles.cardHint}>{points.length} szt.</Text>
-          </View>
-
-          <View style={styles.list}>
-            {points.map((p, i) => (
-              <View key={i} style={styles.row}>
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>{i + 1}</Text>
-                </View>
-                <View style={styles.rowBody}>
-                  <Text style={styles.rowTitle}>Punkt {i + 1}</Text>
-                  <Text style={styles.rowSub}>
-                    {p.latitude.toFixed(6)}, {p.longitude.toFixed(6)}
-                  </Text>
-                </View>
+        ) : (
+          // ===== PANEL =====
+          <View style={styles.waitingPanel}>
+            {users.map((u, i) => (
+              <View key={i} style={styles.userRow}>
+                <Text style={styles.userText}>{u}</Text>
               </View>
             ))}
           </View>
-        </ThemedView>
-      )}
-
-      {/* Nawigacja demo może zostać, ale schowana jako “Więcej” */}
-      <ThemedView style={styles.card}>
-        <ThemedText type="subtitle" style={styles.cardTitle}>
-          Więcej
-        </ThemedText>
-
-        <Link href="/modal">
-          <Link.Trigger>
-            <Text style={styles.linkLike}>Otwórz ekran modalny</Text>
-          </Link.Trigger>
-          <Link.Preview />
-        </Link>
+        )}
       </ThemedView>
     </ParallaxScrollView>
   );
-}
-
-function chipTone(tone: "muted" | "success" | "danger") {
-  if (tone === "success") return { backgroundColor: "rgba(34, 197, 94, 0.18)", borderColor: "rgba(34, 197, 94, 0.35)" };
-  if (tone === "danger") return { backgroundColor: "rgba(239, 68, 68, 0.16)", borderColor: "rgba(239, 68, 68, 0.35)" };
-  return { backgroundColor: "rgba(148, 163, 184, 0.14)", borderColor: "rgba(148, 163, 184, 0.30)" };
 }
 
 const styles = StyleSheet.create({
@@ -204,138 +157,53 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     gap: 12,
   },
+
   heroTopRow: {
     flexDirection: "row",
-    alignItems: "flex-start",
     justifyContent: "space-between",
-    gap: 12,
   },
-  brand: { flex: 1, gap: 6 },
+
+  brand: { gap: 6 },
   brandTitle: { fontSize: 28, lineHeight: 30 },
-  brandSubtitle: {
-    opacity: 0.85,
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  waveWrap: { paddingTop: 2 },
+  brandSubtitle: { opacity: 0.85, fontSize: 13 },
 
-  chip: {
-    alignSelf: "flex-start",
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 999,
+  loginBox: { gap: 12 },
+
+  input: {
+    borderRadius: 14,
+    padding: 12,
+    backgroundColor: "rgba(148,163,184,0.12)",
     borderWidth: 1,
-  },
-  chipText: {
-    color: "rgba(226, 232, 240, 0.92)",
-    fontSize: 12,
-    fontWeight: "600",
+    borderColor: "rgba(148,163,184,0.25)",
+    color: "white",
   },
 
-  ctaRow: { gap: 10 },
   primaryBtn: {
     borderRadius: 16,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    backgroundColor: "rgba(59, 130, 246, 0.92)",
+    padding: 12,
+    backgroundColor: "rgba(59,130,246,0.92)",
+    alignItems: "center",
   },
+
   primaryBtnText: {
     color: "white",
-    fontSize: 16,
     fontWeight: "800",
+    fontSize: 16,
   },
-  primaryBtnSub: {
-    color: "rgba(255,255,255,0.85)",
-    fontSize: 12,
-    marginTop: 4,
+
+  waitingPanel: { gap: 10 },
+
+  userRow: {
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: "rgba(148,163,184,0.1)",
   },
-  secondaryRow: {
-    flexDirection: "row",
-    gap: 10,
-  },
-  secondaryBtn: {
-    flex: 1,
-    borderRadius: 14,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    backgroundColor: "rgba(148, 163, 184, 0.14)",
-    borderWidth: 1,
-    borderColor: "rgba(148, 163, 184, 0.22)",
-    alignItems: "center",
-  },
-  secondaryBtnText: {
-    color: "rgba(226, 232, 240, 0.92)",
+
+  userText: {
+    color: "white",
     fontWeight: "700",
   },
 
-  pressed: { transform: [{ scale: 0.99 }], opacity: 0.92 },
-  disabled: { opacity: 0.45 },
-
-  card: {
-    padding: 16,
-    borderRadius: 18,
-    backgroundColor: "rgba(2, 6, 23, 0.55)",
-    borderWidth: 1,
-    borderColor: "rgba(148, 163, 184, 0.14)",
-    marginBottom: 12,
-    gap: 12,
-  },
-  cardHeader: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    justifyContent: "space-between",
-    gap: 10,
-  },
-  cardTitle: { fontSize: 16 },
-  cardHint: { color: "rgba(148, 163, 184, 0.85)", fontSize: 12 },
-
-  muted: { opacity: 0.75 },
-  danger: { color: "rgba(248, 113, 113, 1)" },
-
-  kvGrid: { flexDirection: "row", gap: 10 },
-  kv: {
-    flex: 1,
-    borderRadius: 14,
-    padding: 12,
-    backgroundColor: "rgba(148, 163, 184, 0.10)",
-    borderWidth: 1,
-    borderColor: "rgba(148, 163, 184, 0.18)",
-    gap: 6,
-  },
-  k: { color: "rgba(148, 163, 184, 0.9)", fontSize: 12, fontWeight: "600" },
-  v: { color: "rgba(226, 232, 240, 0.95)", fontSize: 14, fontWeight: "800" },
-
-  list: { gap: 10 },
-  row: {
-    flexDirection: "row",
-    gap: 10,
-    padding: 12,
-    borderRadius: 14,
-    backgroundColor: "rgba(148, 163, 184, 0.08)",
-    borderWidth: 1,
-    borderColor: "rgba(148, 163, 184, 0.14)",
-  },
-  badge: {
-    width: 28,
-    height: 28,
-    borderRadius: 10,
-    backgroundColor: "rgba(59, 130, 246, 0.22)",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "rgba(59, 130, 246, 0.28)",
-  },
-  badgeText: {
-    color: "rgba(226, 232, 240, 0.95)",
-    fontWeight: "900",
-    fontSize: 12,
-  },
-  rowBody: { flex: 1, gap: 2 },
-  rowTitle: { color: "rgba(226, 232, 240, 0.95)", fontWeight: "800" },
-  rowSub: { color: "rgba(148, 163, 184, 0.95)", fontSize: 12 },
-
-  linkLike: {
-    color: "rgba(96, 165, 250, 0.95)",
-    fontWeight: "700",
-  },
+  pressed: { transform: [{ scale: 0.98 }], opacity: 0.9 },
+  disabled: { opacity: 0.4 },
 });
