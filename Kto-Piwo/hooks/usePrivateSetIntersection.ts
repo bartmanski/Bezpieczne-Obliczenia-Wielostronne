@@ -14,7 +14,7 @@ export function usePrivateSetIntersection() {
             mySecret: bigint,
             peerAbSet: Set<string>,
             peerBSet: Set<string>
-        ): Promise<Set<string>> => {
+        ): Promise<boolean> => {
             // map: H(x)^(ab) -> x
             const myAbMap = new Map<string, string>();
 
@@ -27,17 +27,15 @@ export function usePrivateSetIntersection() {
                     myAbMap.set(hx_ab.toString(), x);
                 }
             }
-
-            const intersection = new Set<string>();
+            console.log('myAbMap:', myAbMap);
 
             for (const v of peerAbSet) {
-                const el = myAbMap.get(v);
-                if (el) {
-                    intersection.add(el);
+                if (myAbMap.has(v)) {
+                    return true;
                 }
             }
 
-            return intersection;
+            return false;
         },
         []
     );
