@@ -14,6 +14,7 @@ export default function HomeScreen() {
   const [username, setUsername] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [users, setUsers] = useState<string[]>([]);
+  const [nearbyUsers, setNearbyUsers] = useState<string[]>([]);
   const { location, points } = useLocation();
   const [privateKey, setPrivateKey] = useState<bigint | null>(null);
 
@@ -76,7 +77,7 @@ export default function HomeScreen() {
           const data2 = await res2.json(); 
           if(data2.nearby_users){
              const users = data2.nearby_users.map((u:any) => u.user);
-             setUsers(users);
+             setNearbyUsers(users);
              console.log("Nearby users:", users);
           }
           console.log("hashed_twice response:", data2);
@@ -132,7 +133,15 @@ export default function HomeScreen() {
           <HelloWave />
         </View>
 
-        {!isLoggedIn ? (
+        <View style={styles.waitingPanel}>
+          {nearbyUsers.map((u, i) => (
+            <View key={i} style={styles.userRow}>
+              <Text style={styles.userText}>{u}</Text>
+            </View>
+          ))}
+        </View>
+
+        {!isLoggedIn && (
           // ===== LOGOWANIE =====
           <View style={styles.loginBox}>
             <TextInput
@@ -154,15 +163,6 @@ export default function HomeScreen() {
             >
               <Text style={styles.primaryBtnText}>Zaloguj</Text>
             </Pressable>
-          </View>
-        ) : (
-          // ===== PANEL =====
-          <View style={styles.waitingPanel}>
-            {users.map((u, i) => (
-              <View key={i} style={styles.userRow}>
-                <Text style={styles.userText}>{u}</Text>
-              </View>
-            ))}
           </View>
         )}
       </ThemedView>
