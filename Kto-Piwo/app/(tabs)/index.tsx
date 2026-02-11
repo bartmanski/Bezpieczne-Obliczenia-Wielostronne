@@ -6,15 +6,81 @@ import HelloWave from "@/components/hello-wave";
 import ParallaxScrollView from "@/components/parallax-scroll-view";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { useLocation } from "@/hooks/location";
+import { API_BASE_URL } from "@/config/api";
+import { randomBigInt, hashToBigInt, modPow, P } from "@/utils/cryptoUtils";
 
 export default function HomeScreen() {
   const [username, setUsername] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [users, setUsers] = useState<string[]>([]);
+  const { location, points } = useLocation();
+  const [privateKey, setPrivateKey] = useState<bigint | null>(null);
+
+  useEffect(() => {
+    randomBigInt().then(setPrivateKey);
+  }, []);
 
   async function sendLocationToDo() {
     try {
+      if (!location || !points || !privateKey) return;
       console.log("Wysyłam lokalizację dla:", username);
+
+      const hashedPoints = await Promise.all(
+        points.map(async (p) => {
+          const h = await hashToBigInt(JSON.stringify(p));
+          return modPow(h, privateKey, P).toString();
+        })
+      );
+
+      const res = await fetch(`${API_BASE_URL}/hashed_once`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          value: {
+            userId: username,
+            pos: hashedPoints,
+          },
+        }),
+      });
+      const data = await res.json();
+      console.log("hashed_once response:", data);
+
+      if (data.positions) {
+        const hashes: Record<string, string[]> = {};
+
+        data.positions.forEach((otherUser: any) => {
+           console.log("Other user:", otherUser);
+          const otherUserHashPositions = otherUser.pos.map((p: string) => {
+            return modPow(BigInt(p), privateKey, P).toString();
+          });
+          hashes[otherUser.id] = otherUserHashPositions;
+        });
+
+        console.log("Calculated hashes for others:", hashes);
+
+        const res2 = await fetch(`${API_BASE_URL}/hashed_twice`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              value: {
+                id: username,
+                hashes: hashes,
+              },
+            }),
+          });
+          const data2 = await res2.json(); 
+          if(data2.nearby_users){
+             const users = data2.nearby_users.map((u:any) => u.user);
+             setUsers(users);
+             console.log("Nearby users:", users);
+          }
+          console.log("hashed_twice response:", data2);
+      }
     } catch (e) {
       console.log("Błąd sendLocationToDo:", e);
     }

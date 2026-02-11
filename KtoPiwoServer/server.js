@@ -38,9 +38,13 @@ app.post("/hashed_once", (req, res) => {
 
   const positions = hashed_once.filter((e) =>  e.id != id)
   const data = {id, pos};
-  console.log("Adding user to hashed once", data);
+  console.log("Adding user to hashed once", data); 
   hashed_once.push(data);
   res.json({ok: true, positions});
+});
+
+app.get("/hashed_once", (req, res) => {
+  res.json({ok: true, positions: hashed_once});
 });
 
 app.post("/hashed_twice", (req, res) => {
