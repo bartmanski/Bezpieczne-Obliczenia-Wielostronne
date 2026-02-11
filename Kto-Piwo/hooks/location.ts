@@ -25,27 +25,27 @@ function metersToLonDeg(m: number, lat: number) {
 }
 
 function calcPoints(
-    cardLat: number,
-    cardLon: number,
-    m : number = 100, 
-    accuracy: number = 3,
+  cardLat: number,
+  cardLon: number,
+  m: number = 100,
+  accuracy: number = 4,
 ) {
-    const dLat = metersToLatDeg(m)
-    const dLon = metersToLonDeg(m, cardLat)
+  const dLat = metersToLatDeg(m)
+  const dLon = metersToLonDeg(m, cardLat)
 
-//     return {
-//     center: { latitude: cardLat, longitude: cardLon },
-//     north: { latitude: cardLat + dLat, longitude: cardLon },
-//     south: { latitude: cardLat - dLat, longitude: cardLon },
-//     east:  { latitude: cardLat, longitude: cardLon + dLon },
-//     west:  { latitude: cardLat, longitude: cardLon - dLon },
-//   };
-    return {
+  //     return {
+  //     center: { latitude: cardLat, longitude: cardLon },
+  //     north: { latitude: cardLat + dLat, longitude: cardLon },
+  //     south: { latitude: cardLat - dLat, longitude: cardLon },
+  //     east:  { latitude: cardLat, longitude: cardLon + dLon },
+  //     west:  { latitude: cardLat, longitude: cardLon - dLon },
+  //   };
+  return {
     center: { latitude: cardLat, longitude: cardLon },
     north: { latitude: cardLat + Math.pow(10, -accuracy), longitude: cardLon },
     south: { latitude: cardLat - + Math.pow(10, -accuracy), longitude: cardLon },
-    east:  { latitude: cardLat, longitude: cardLon + Math.pow(10, -accuracy) },
-    west:  { latitude: cardLat, longitude: cardLon - Math.pow(10, -accuracy)},
+    east: { latitude: cardLat, longitude: cardLon + Math.pow(10, -accuracy) },
+    west: { latitude: cardLat, longitude: cardLon - Math.pow(10, -accuracy) },
   };
 }
 
@@ -53,7 +53,7 @@ export function useLocation() {
   const [location, setLocation] = useState<Coords | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [points, setPoints] = useState<Point[]| null>(null)
+  const [points, setPoints] = useState<Point[] | null>(null)
 
   useEffect(() => {
     let sub: Location.LocationSubscription | null = null;
@@ -103,43 +103,44 @@ export function useLocation() {
   }, []);
 
   useEffect(() => {
-  if (!location) {
-    return;
-  }
+    if (!location) {
+      return;
+    }
 
-  const latRounded = round(location.latitude, 3);
-  const lonRounded = round(location.longitude, 3);
+    const acc = 3;
+    const latRounded = round(location.latitude, acc);
+    const lonRounded = round(location.longitude, acc);
 
-  const pointsFromLat = calcPoints(
-    latRounded,
-    location.longitude,
-    100
-  );
+    const pointsFromLat = calcPoints(
+      latRounded,
+      location.longitude,
+      100
+    );
 
-  const pointsFromLon = calcPoints(
-    location.latitude,
-    lonRounded,
-    100
-  );
+    const pointsFromLon = calcPoints(
+      location.latitude,
+      lonRounded,
+      100
+    );
 
-  const allPoints: Point[] = [
-    pointsFromLat.center,
-    pointsFromLat.north,
-    pointsFromLat.south,
-    pointsFromLat.east,
-    pointsFromLat.west,
+    const allPoints: Point[] = [
+      pointsFromLat.center,
+      pointsFromLat.north,
+      pointsFromLat.south,
+      pointsFromLat.east,
+      pointsFromLat.west,
 
-    pointsFromLon.center,
-    pointsFromLon.north,
-    pointsFromLon.south,
-    pointsFromLon.east,
-    pointsFromLon.west,
-  ];
+      pointsFromLon.center,
+      pointsFromLon.north,
+      pointsFromLon.south,
+      pointsFromLon.east,
+      pointsFromLon.west,
+    ];
 
-  setPoints(allPoints);
-}, [location]);
+    setPoints(allPoints);
+  }, [location]);
 
 
-  return { location, points,  loading, error };
+  return { location, points, loading, error };
 }
 

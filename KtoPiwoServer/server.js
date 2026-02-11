@@ -38,8 +38,13 @@ app.post("/hashed_once", (req, res) => {
 
   const positions = hashed_once.filter((e) =>  e.id != id)
   const data = {id, pos};
-  console.log("Adding user to hashed once", data); 
-  hashed_once.push(data);
+  console.log("Adding user to hashed once", data.id); 
+  const index = hashed_once.findIndex(e => e.id == id);
+  if(index == -1){
+    hashed_once.push(data);
+  }else{
+    hashed_once[index] = data;
+  }
   res.json({ok: true, positions});
 });
 
@@ -57,7 +62,7 @@ app.post("/hashed_twice", (req, res) => {
     hashed_twice[id] = value.hashes; // hashes = {id: [h(p0), h(p1), ...]}
   }else{
     for(const key in value.hashes){
-      hashed_twice[id][key] = value.hashes[key];
+      hashed_twice[id] = value.hashes;
       if(hashed_twice[key]){
         if(hashed_twice[key][id]){
           const set1 = hashed_twice[key][id];

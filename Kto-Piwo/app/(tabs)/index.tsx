@@ -2,7 +2,7 @@ import { Image } from "expo-image";
 import { StyleSheet, Pressable, TextInput, Text, View } from "react-native";
 import { useState, useEffect } from "react";
 
-import HelloWave from "@/components/hello-wave";
+import { HelloWave } from "@/components/hello-wave";
 import ParallaxScrollView from "@/components/parallax-scroll-view";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
@@ -52,14 +52,14 @@ export default function HomeScreen() {
         const hashes: Record<string, string[]> = {};
 
         data.positions.forEach((otherUser: any) => {
-           console.log("Other user:", otherUser);
+          //  console.log("Other user:", otherUser);
           const otherUserHashPositions = otherUser.pos.map((p: string) => {
             return modPow(BigInt(p), privateKey, P).toString();
           });
           hashes[otherUser.id] = otherUserHashPositions;
         });
 
-        console.log("Calculated hashes for others:", hashes);
+        // console.log("Calculated hashes for others:", hashes);
 
         const res2 = await fetch(`${API_BASE_URL}/hashed_twice`, {
             method: "POST",
@@ -85,17 +85,6 @@ export default function HomeScreen() {
       console.log("Błąd sendLocationToDo:", e);
     }
   }
-  async function fetchUsersToDo() {
-    try {
-      console.log("Pobieram użytkowników...");
-
-      const fakeData = ["Kuba", "Ania", "Bartek", username];
-
-      setUsers(fakeData);
-    } catch (e) {
-      console.log("Błąd fetchUsersToDo:", e);
-    }
-  }
 
   async function handleLogin() {
     if (!username.trim()) return;
@@ -103,7 +92,6 @@ export default function HomeScreen() {
     setIsLoggedIn(true);
 
     await sendLocationToDo();
-    await fetchUsersToDo();
   }
 
 
@@ -112,20 +100,11 @@ export default function HomeScreen() {
 
     const interval = setInterval(() => {
       sendLocationToDo();
-    }, 5000);
+    }, 5 * 1000);
 
     return () => clearInterval(interval);
   }, [isLoggedIn]);
 
-  useEffect(() => {
-    if (!isLoggedIn) return;
-
-    const interval = setInterval(() => {
-      fetchUsersToDo();
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, [isLoggedIn]);
 
   return (
     <ParallaxScrollView
