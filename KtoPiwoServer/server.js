@@ -26,3 +26,43 @@ const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`API server running on http://localhost:${PORT}`);
 });
+
+
+const hashed_once = [];
+const hashed_twice = {};
+
+app.post("/hashed_once", (req, res) => {
+  const {value} = req.body;
+  const id = value.userId;
+  const pos = value.pos;
+
+  const positions = hashed_once.filter((e) =>  e.id != id)
+  const data = {id, pos};
+  console.log("Adding user to hashed once", data);
+  hashed_once.push(data);
+  res.json({ok: true, positions});
+});
+
+app.post("/hashed_twice", (req, res) => {
+  const {value} = req.body;
+  
+  const id = value.id;
+  const nearby_users = [];
+
+  if(!hashed_twice[id]){
+    hashed_twice[id] = value.hashes; // hashes = {id: [h(p0), h(p1), ...]}
+  }else{
+    for(const key in value.hashes){
+      hashed_twice[id][key] = value.hashes[key];
+      if(hashed_twice[key]){
+        if(hashed_twice[key][id]){
+          const set1 = hashed_twice[key][id];
+          const set2 = hashed_twice[id][key];
+          const intersection = set1.filter(hash => set2.includes(hash));
+          nearby_users.push({user: key, matches: intersection});
+        }
+      }
+    }
+  }
+  res.json({ok: true, nearby_users})
+});
