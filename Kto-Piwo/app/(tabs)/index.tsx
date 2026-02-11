@@ -7,15 +7,15 @@ import ParallaxScrollView from "@/components/parallax-scroll-view";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useLocation } from "@/hooks/location";
-import { API_BASE_URL } from "@/config/api";
+import { API_BASE_URL, REFRESH_TIME_SECONDS } from "@/config/api";
 import { randomBigInt, hashToBigInt, modPow, P } from "@/utils/cryptoUtils";
+import { calcPoints } from "@/api/pointsApi";
 
 export default function HomeScreen() {
   const [username, setUsername] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [users, setUsers] = useState<string[]>([]);
   const [nearbyUsers, setNearbyUsers] = useState<string[]>([]);
-  const { location, points } = useLocation();
+  const { point } = useLocation();
   const [privateKey, setPrivateKey] = useState<bigint | null>(null);
 
   useEffect(() => {
@@ -24,8 +24,9 @@ export default function HomeScreen() {
 
   async function sendLocationToDo() {
     try {
-      if (!location || !points || !privateKey) return;
-      console.log("Wysyłam lokalizację dla:", username);
+      if (!location || !point || !privateKey) return;
+      const points = calcPoints(point.latitude, point.longitude);
+      console.log("Wysyłam lokalizację dla:", username, points);
 
       const hashedPoints = await Promise.all(
         points.map(async (p) => {
@@ -101,7 +102,7 @@ export default function HomeScreen() {
 
     const interval = setInterval(() => {
       sendLocationToDo();
-    }, 5 * 1000);
+    }, REFRESH_TIME_SECONDS*1000);
 
     return () => clearInterval(interval);
   }, [isLoggedIn]);
