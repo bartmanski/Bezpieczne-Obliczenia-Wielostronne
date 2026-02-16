@@ -20,7 +20,7 @@ app.post("/hashed_once", (req, res) => {
   const id = value.userId;
   const pos = value.pos;
 
-  const positions = hashed_once.filter((e) =>  e.id != id)
+  const positions = hashed_once.filter((e) => e.id != id)
   const data = {id, pos};
   console.log("Adding user to hashed once", data.id); 
   const index = hashed_once.findIndex(e => e.id == id);

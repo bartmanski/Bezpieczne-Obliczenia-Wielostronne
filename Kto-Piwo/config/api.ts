@@ -1,3 +1,3 @@
-export const API_BASE_URL = "https://041d-77-222-237-236.ngrok-free.app";
-export const ACCURACY = 1.5;
-export const REFRESH_TIME_SECONDS = 7;
+export const API_BASE_URL = "https://f11b-77-222-237-239.ngrok-free.app";
+export const ACCURACY = 1;
+export const REFRESH_TIME_SECONDS = 5;

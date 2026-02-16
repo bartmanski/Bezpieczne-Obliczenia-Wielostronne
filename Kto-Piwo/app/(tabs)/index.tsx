@@ -26,7 +26,7 @@ export default function HomeScreen() {
     try {
       if (!location || !point || !privateKey) return;
       const points = calcPoints(point.latitude, point.longitude);
-      console.log("Wysyłam lokalizację dla:", username, points);
+      // console.log("Wysyłam lokalizację dla:", username, points);
 
       const hashedPoints = await Promise.all(
         points.map(async (p) => {
@@ -48,7 +48,7 @@ export default function HomeScreen() {
         }),
       });
       const data = await res.json();
-      console.log("hashed_once response:", data);
+      // console.log("hashed_once response:", data);
 
       if (data.positions) {
         const hashes: Record<string, string[]> = {};
@@ -81,7 +81,8 @@ export default function HomeScreen() {
              setNearbyUsers(users);
              console.log("Nearby users:", users);
           }
-          console.log("hashed_twice response:", data2);
+          // console.log("hashed_twice response:", data2);
+          //TODO setPrivateKey
       }
     } catch (e) {
       console.log("Błąd sendLocationToDo:", e);
